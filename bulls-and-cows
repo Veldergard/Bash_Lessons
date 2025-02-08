@@ -59,7 +59,6 @@ calculate_bulls_and_cows() {
 # Основной блок выполнения сценария
 
 generate_secret
-echo "debug $secret"
 # Для отладки можно раскомментировать следующую строку:
 # echo "Загаданное число: $secret"
 
