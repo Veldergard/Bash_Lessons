@@ -1,0 +1,83 @@
+#!/bin/bash
+
+trap "echo 'Чтобы завершить сценарий, введите q или Q'" SIGINT
+
+A=(8 7 6 5 4 3 2 1)
+B=()
+C=()
+
+print_stacks() {
+    max_height=8
+    for ((i=max_height; i>=0; i--)); do
+        echo "|${A[i]:- }|  |${B[i]:- }|  |${C[i]:- }|"
+    done
+    echo "+-+  +-+  +-+"
+    echo " A    B    C "
+}
+
+move_disk() {
+    local from=$1
+    local to=$2
+    local -n from_stack=$from
+    local -n to_stack=$to
+
+    if [[ ${#from_stack[@]} -eq 0 ]]; then
+        echo "Стек $from пуст! Выберите другой."
+        return 1
+    fi
+
+    local disk=${from_stack[-1]}
+    if [[ ${#to_stack[@]} -ne 0 && ${to_stack[-1]} -lt $disk ]]; then
+        echo "Такое перемещение запрещено!"
+        return 1
+    fi
+
+    unset from_stack[-1]
+    to_stack+=($disk)
+    return 0
+}
+
+is_solved() {
+    [[ ${#B[@]} -eq 8 || ${#C[@]} -eq 8 ]]
+}
+
+step=1
+result=0
+while true; do
+    if [ $result -eq 0 ]; then
+        print_stacks
+    fi
+    echo "Ход № $step (откуда, куда):"
+    read -r input
+
+    # Перевод в верхний регистр
+    input=${input^^}
+    #Убираем пробелы
+    input=${input// /}
+
+    if [[ $input == "Q" ]]; then
+        exit 1
+    fi
+
+    if [[ ! $input =~ ^[ABC][ABC]$ ]]; then
+        echo "Некорректный ввод! Повторите попытку."
+        continue
+    fi
+
+    from_stack=${input:0:1}
+    to_stack=${input:1:1}
+    
+    if [[ $from_stack == $to_stack ]]; then
+        echo "Нельзя перемещать в тот же стек!"
+        result=1
+        continue
+    fi
+
+    move_disk $from_stack $to_stack && ((step++))
+    
+    if is_solved; then
+        print_stacks
+        echo "Поздравляем, вы выиграли!"
+        exit 0
+    fi
+done
